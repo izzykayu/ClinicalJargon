@@ -1,0 +1,10 @@
+Causalty_Categories_Proposed_by_Stausbergetal,Reason
+A.1,Induced by medication
+A.2,Induced by medication or other causes
+B.1,Poisoning by medication
+B.2,Poisoning by or harmful use of medication or other causes
+C,ADE very likely
+D,ADE likely
+E,ADE possible
+U,ADE unlikely
+V,Induced by vaccine (added)
