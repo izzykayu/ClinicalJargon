@@ -217,3 +217,68 @@ sgbROC <-
 histogram(~sgbProbs$POS|test$LABEL_STR, xlab = "Probability of ", col="#7FC7AF")
 model
 sgbROC
+print(table(train$LABEL_STR))
+print(table(test$LABEL_STR))
+print(head(sgbProbs))
+solSGB <- data.frame('id' = test$id, sgbProbs, 'LABEL_STR' = test$LABEL_STR) 
+write.csv(solSGB, "/work/data/solutionsStochasticGradientBoosting_FINAL.csv")
+# making sure no changes
+table(test$LABEL_STR)
+table(train$LABEL_STR)
+test$LABEL_STR <- as.factor(ifelse(test$label == 1, 'POS','NEG'))
+table(test$LABEL_STR)
+
+
+## the infamous xgbboost
+
+library(xgboost)
+# creating second model
+formula = LABEL_STR ~ . 
+# cross validation 10 times to do less overfitting
+fitControl <- trainControl(method="cv",number = 10,classProbs=TRUE, summaryFunction=mnLogLoss)
+
+ xgbGrid <- expand.grid(nrounds = 500, 
+                        max_depth = 3, 
+                        eta = .05, 
+                        gamma = 0, 
+                        colsample_bytree = .8, 
+                        min_child_weight = 1, 
+                        subsample = 1) 
+
+
+ set.seed(13) 
+
+  XGB = train(formula, data = LabeledTermsTrain, 
+                  method = "xgbTree",trControl = fitControl, 
+                  tuneGrid = xgbGrid,na.action = na.pass,metric="LogLoss", maximize=FALSE) 
+
+ importance = varImp( XGB) 
+
+ varImportance <- data.frame(Variables = row.names(importance[[1]]), 
+                             Importance = round(importance[[1]]$Overall,2)) 
+
+ # Create a rank variable based on importance 
+ rankImportance <- varImportance %>% 
+   mutate(Rank = paste0('#',dense_rank(desc(Importance)))) %>% 
+   head(20) 
+
+ rankImportancefull = rankImportance 
+
+ ggplot(rankImportancefull, aes(x = reorder(Variables, Importance),  
+                            y = Importance)) +  
+   geom_bar(stat='identity',colour=values[1], fill = "plum1", alpha=0.5) +  
+   geom_text(aes(x = Variables, y = 1, label = Rank),  
+             hjust=0, vjust=.5, size = 3, colour = values[1],  
+             fontface = 'bold') +  
+   labs(x = 'Feature', title = 'Relative Feature Importance in Predicting   note Class', subtitle="XGBoost Model") +  
+   coord_flip() + theme_classic()  
+
+predictionsXGB = predict( XGB,LabeledTermsTest,type = 'prob')  
+XGBConfusionpredictions = predict( XGB,LabeledTermsTest,type = 'raw')  
+
+ # Save the solution 
+solXGB <- data.frame('id' = test$id, predictionsXGB, 'LABEL_STR' = test$LABEL_STR) 
+xgboostROC <- roc(predictor = predictionsXGB$POS, 
+response = test$LABEL_STR, 
+levels = rev(levels(test$LABEL_STR))) 
+write.csv(solXGB, "/work/data/solXGB_FINAL.csv") 
