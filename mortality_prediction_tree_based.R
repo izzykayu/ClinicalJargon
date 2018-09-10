@@ -216,160 +216,42 @@ sgbROC <-
 
 histogram(~sgbProbs$POS|test$LABEL_STR, xlab = "Probability of ", col="#7FC7AF")
 model
-# Stochastic Gradient Boosting 
-
-# 23437 samples
-#  4124 predictor
-#     2 classes: 'NEG', 'POS' 
-
-# No pre-processing
-# Resampling: Cross-Validated (10 fold) 
-# Summary of sample sizes: 21093, 21093, 21093, 21093, 21094, 21093, ... 
-# Resampling results across tuning parameters:
-
-#   interaction.depth  n.trees  ROC        Sens       Spec     
-#   1                   50      0.8171379  0.9988351  0.1127692
-#   1                  100      0.8538054  0.9984899  0.1127692
-#   1                  150      0.8621542  0.9983173  0.1129231
-#   2                   50      0.8183856  0.9980585  0.1127692
-#   2                  100      0.8383358  0.9977565  0.1164615
-#   2                  150      0.8459335  0.9976702  0.1241538
-#   3                   50      0.8421022  0.9978428  0.1163077
-#   3                  100      0.8549894  0.9973682  0.1124615
-#   3                  150      0.8526889  0.9972388  0.1320000
-
-# Tuning parameter 'shrinkage' was held constant at a value of 0.1
-
-# Tuning parameter 'n.minobsinnode' was held constant at a value of 10
-# ROC was used to select the optimal model using  the largest value.
-# The final values used for the model were n.trees =
-#  150, interaction.depth = 1, shrinkage = 0.1 and n.minobsinnode = 10.
-
-# Call:
-# roc.default(response = test$LABEL_STR, predictor = sgbProbs$POS,     levels = rev(levels(test$LABEL_STR)))
-
-# Data: sgbProbs$POS in 94 controls (test$LABEL_STR POS) > 7516 cases (test$LABEL_STR NEG).
-
 sgbROC
-#Area under the curve: 0.6606
-print(table(train$LABEL_STR))
-print(table(test$LABEL_STR))
 print(head(sgbProbs))
-sgbDF=data.frame("id"=test$id, "PredictedLabels"=sgbProbsConfusion, sgbProbs, "ActualLabels"=test$LABEL_STR, "TrueLabels01"=test$label)
-head(sgbDF)
-write.csv(x = sgbDF, file="/work/data/sbgDF_sept9_2018.csv", append = FALSE)
-predicted = sgbDF$PredictedLabels
-actual = test$LABEL_STR
-mat <- confusionMatrix(predicted, actual, positive="POS")
-mat$table
-#           Reference
-# Prediction  NEG  POS
-#        NEG 7504   93
-#        POS   12    1
-mat$overall
-#       Accuracy          Kappa  AccuracyLower  AccuracyUpper 
-#   9.862024e-01   1.573736e-02   9.833214e-01   9.887014e-01 
-#   AccuracyNull AccuracyPValue  McnemarPValue 
-#   9.876478e-01   8.824259e-01   5.847217e-15
-mat$byClass
-#          Sensitivity          Specificity       Pos Pred Value 
-#          0.010638298          0.998403406          0.076923077 
-#       Neg Pred Value            Precision               Recall 
-#          0.987758326          0.076923077          0.010638298 
-#                   F1           Prevalence       Detection Rate 
-#          0.018691589          0.012352168          0.000131406 
-# Detection Prevalence    Balanced Accuracy 
-#          0.001708279          0.504520852 
+solSGB <- data.frame('id' = test$id, sgbProbs, 'LABEL_STR' = test$LABEL_STR) 
+write.csv(solSGB, "/work/data/solutionsStochasticGradientBoosting.csv")
 # making sure no changes
-
-wes_palettes <- list(
-  BottleRocket1 = c("#A42820", "#5F5647", "#9B110E", "#3F5151", "#4E2A1E", "#550307", "#0C1707"),
-  BottleRocket2 = c("#FAD510", "#CB2314", "#273046", "#354823", "#1E1E1E"),
-  Rushmore1 = c("#E1BD6D", "#EABE94", "#0B775E", "#35274A" ,"#F2300F"),
-  Royal1 = c("#899DA4", "#C93312", "#FAEFD1", "#DC863B"),
-  Royal2 = c("#9A8822", "#F5CDB4", "#F8AFA8", "#FDDDA0", "#74A089"),
-  Zissou1 = c("#3B9AB2", "#78B7C5", "#EBCC2A", "#E1AF00", "#F21A00"),
-  Darjeeling1 = c("#FF0000", "#00A08A", "#F2AD00", "#F98400", "#5BBCD6"),
-  Darjeeling2 = c("#ECCBAE", "#046C9A", "#D69C4E", "#ABDDDE", "#000000"),
-  Chevalier1 = c("#446455", "#FDD262", "#D3DDDC", "#C7B19C"),
-  FantasticFox1 = c("#DD8D29", "#E2D200", "#46ACC8", "#E58601", "#B40F20"),
-  Moonrise1 = c("#F3DF6C", "#CEAB07", "#D5D5D3", "#24281A"),
-  Moonrise2 = c("#798E87", "#C27D38", "#CCC591", "#29211F"),
-  Moonrise3 = c("#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"),
-  Cavalcanti1 = c("#D8B70A", "#02401B", "#A2A475", "#81A88D", "#972D15"),
-  GrandBudapest1 = c("#F1BB7B", "#FD6467", "#5B1A18", "#D67236"),
-  GrandBudapest2 = c("#E6A0C4", "#C6CDF7", "#D8A499", "#7294D4")
-)
-
-# function for optimal cut
-opt.cut = function(perf, pred){
-    cut.ind = mapply(FUN=function(x, y, p){
-      d = (x - 0)^2 + (y-1)^2
-      ind = which(d == min(d))
-      c(sensitivity = y[[ind]], specificity = 1-x[[ind]], 
-        cutoff = p[[ind]])
-    }, perf@x.values, perf@y.values, pred@cutoffs)
-  }
-
-temp.pred = ROCR::prediction(sgbDF$POS, sgbDF$TrueLabels01)
-temp.perf = ROCR::performance(temp.pred, "prec", "rec")
-namee = paste0("N = ", nrow(sgbDF))
-l = labs(subtitle=namee)
-temp.pr <- tibble(ppv = temp.perf@y.values[[1]],
-                  rec = temp.perf@x.values[[1]])
-library(ggplot2)
-p1 <- ggplot(temp.pr, aes(rec, ppv)) +
- # geom_vline(xintercept = 1, col="white") +
-  geom_hline(yintercept = 1, col="white")  +
-  geom_line(col=wes_palettes$Royal1[1]) +geom_point(alpha = 0.2,col=wes_palettes$Royal1[1], pch=21) +
-  theme_minimal() + ggtitle("SGB Precision-Recall Curve")+ l#+ labs(subtitle="N = 5168156")
-p1
-
-#formula
-temp.pr <- tibble(ppv = temp.perf@y.values[[1]],
-                  rec = temp.perf@x.values[[1]])
-
-f1_perf = ROCR::performance(temp.pred, "f")
-perf = ROCR::performance(temp.pred, "prec", "rec")
-
-plot.prc <- tibble(ppv.raw = perf@y.values[[1]],
-                   recall = perf@x.values[[1]],
-                   cutoff = perf@alpha.values[[1]]) %>%
-  #arrange(desc(recall)) %>%
-  arrange(cutoff) %>%
-  ## interpolated PR curve
-  mutate(precision = cummax(ppv.raw)) %>%
-  arrange(desc(cutoff))
-(plot.prc$ppv.raw)
-
-plot.prc %>% filter(ppv.raw > 0.6)
-perf@x.name
-summary(unlist(perf@x.values))
-#[1] "Recall"
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#  0.0000  0.1489  0.2234  0.2526  0.3723  1.0000 
-
-perf@y.name
-summary(na.omit(unlist(perf@y.values)))
-# [1] "Precision"
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.00000 0.03529 0.04015 0.04890 0.06051 0.16667
-f1_perf@y.name
-summary(na.omit(unlist(f1_perf@y.values)))
-#[1] "Precision-Recall F measure"
-#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#0.00000 0.06286 0.06730 0.06791 0.07636 0.09489
-## as you can see, SGB did not perform great in this case!!
-# our logreg baseline models did better XP
-####
-### NOW PREPARING FOR NEXT TREE BASED METHOD
-
 table(test$LABEL_STR)
 table(train$LABEL_STR)
 test$LABEL_STR <- as.factor(ifelse(test$label == 1, 'POS','NEG'))
 table(test$LABEL_STR)
+library(e1071)
+confusionMatrix(solSGB$PredictedLabels, test$LABEL_STR, positive="POS")
+# Confusion Matrix and Statistics
 
-
+#           Reference
+# Prediction  NEG  POS
+#       NEG 7504   93
+#       POS   12    1
+                                          
+#               Accuracy : 0.9862          
+#                  95% CI : (0.9833, 0.9887)
+#     No Information Rate : 0.9876          
+#     P-Value [Acc > NIR] : 0.8824          
+                                          
+#                   Kappa : 0.0157          
+#  Mcnemar's Test P-Value : 5.847e-15       
+                                          
+#             Sensitivity : 0.0106383       
+#             Specificity : 0.9984034       
+#          Pos Pred Value : 0.0769231       
+#          Neg Pred Value : 0.9877583       
+#              Prevalence : 0.0123522       
+#          Detection Rate : 0.0001314       
+#   Detection Prevalence : 0.0017083       
+#       Balanced Accuracy : 0.5045209       
+                                          
+#       'Positive' Class : POS  
 ## the infamous xgbboost
 
 library(xgboost)
@@ -389,7 +271,7 @@ fitControl <- trainControl(method="cv",number = 10,classProbs=TRUE, summaryFunct
 
  set.seed(13) 
 
-  XGB = train(formula, data = LabeledTermsTrain, 
+  XGB = train(formula, data = LabeledTerms, 
                   method = "xgbTree",trControl = fitControl, 
                   tuneGrid = xgbGrid,na.action = na.pass,metric="LogLoss", maximize=FALSE) 
 
@@ -414,12 +296,89 @@ fitControl <- trainControl(method="cv",number = 10,classProbs=TRUE, summaryFunct
    labs(x = 'Feature', title = 'Relative Feature Importance in Predicting   note Class', subtitle="XGBoost Model") +  
    coord_flip() + theme_classic()  
 
-predictionsXGB = predict( XGB,LabeledTermsTest,type = 'prob')  
-XGBConfusionpredictions = predict( XGB,LabeledTermsTest,type = 'raw')  
-
+xgbProbs <- predict(XGB, labeledTermsTest, type = "prob", na.action = na.pass)
+xgbConfusion <- predict(XGB,  labeledTermsTest, type = "raw", na.action = na.pass)
  # Save the solution 
-solXGB <- data.frame('id' = test$id, predictionsXGB, 'LABEL_STR' = test$LABEL_STR) 
-xgboostROC <- roc(predictor = predictionsXGB$POS, 
-response = test$LABEL_STR, 
-levels = rev(levels(test$LABEL_STR))) 
+xgbROC <-
+   roc(predictor = xgbProbs$POS, response = test$LABEL_STR, levels = rev(levels(test$LABEL_STR)))
+ # Save the solution 
+solXGB <- data.frame('id' = test$id, xgbProbs, 'PredictedLabels'=xgbProbsConfusion, 'LABEL_STR' = test$LABEL_STR) 
 write.csv(solXGB, "/work/data/solXGB_FINAL.csv") 
+head(solXGB)
+xgbROC
+#Data: xgbProbs$POS in 94 controls (test$LABEL_STR POS) > 7516 cases (test$LABEL_STR NEG).
+#Area under the curve: 0.9087
+# as you can see the AUC is much higher for xgboost than sgb model
+library(e1071)
+confusionMatrix(solXGB$PredictedLabels, test$LABEL_STR, positive="POS")
+# Confusion Matrix and Statistics
+
+#           Reference
+# Prediction  NEG  POS
+#       NEG 7509   85
+#       POS    7    9
+                                          
+#               Accuracy : 0.9879          
+#                  95% CI : (0.9852, 0.9902)
+#     No Information Rate : 0.9876          
+#     P-Value [Acc > NIR] : 0.4447          
+                                          
+#                   Kappa : 0.1606          
+#  Mcnemar's Test P-Value : 9.923e-16       
+                                          
+#             Sensitivity : 0.095745        
+#             Specificity : 0.999069        
+#          Pos Pred Value : 0.562500        
+#          Neg Pred Value : 0.988807        
+#              Prevalence : 0.012352        
+#          Detection Rate : 0.001183        
+#   Detection Prevalence : 0.002102        
+#       Balanced Accuracy : 0.547407        
+                                          
+#       'Positive' Class : POS   
+
+temp.pred = ROCR::prediction(solXGB$POS, test$label)
+temp.perf = ROCR::performance(temp.pred, "prec", "rec")
+namee = paste0("N = ", nrow(labeledTermsTest))
+l = labs(subtitle=namee)
+temp.pr <- tibble(ppv = temp.perf@y.values[[1]],
+                  rec = temp.perf@x.values[[1]])
+library(ggplot2)
+p2 <- ggplot(temp.pr, aes(rec, ppv)) +
+ # geom_vline(xintercept = 1, col="white") +
+  geom_hline(yintercept = 1, col="white")  +
+  geom_line(col=wes_palettes$Royal1[1]) +geom_point(alpha = 0.2,col=wes_palettes$Royal1[1], pch=21) +
+  theme_minimal() + ggtitle("XGBoost Precision-Recall Curve")+ l
+p2
+# prec-recall curve
+
+f1_perf = ROCR::performance(temp.pred, "f")
+# f1_perf
+
+f1_perf@y.name
+summary(na.omit(unlist(f1_perf@y.values)))
+#[1] "Precision-Recall F measure"
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#0.02083 0.03971 0.05882 0.08022 0.09967 0.33143
+ train(formula, data=train, method="glm", family=binomial, trControl=train_control)
+
+## MODEL GLMNET
+
+set.seed(13)
+library(caret)
+objControl <- trainControl(method='cv', number=10, returnResamp='none')
+# this uses the factor still
+glmModel<-train(labeledTerms, train$LABEL_STR, method='glmnet', trControl=objControl)
+
+predictionsGLM = predict(glmModel,labeledTermsTest,type = 'prob')
+GLMConfusion = predict(glmModel,labeledTermsTest,type = 'raw')
+# Save the solution to a dataframe
+solGLM <- data.frame('id' = test$id, predictionsGLM, "PredictedLabels"=GLMConfusion, 'LABEL_STR' = test$LABEL_STR)
+# Write it to file
+write.csv(solGLM, '/work/data/GLMNetsept10_2018.csv')
+modelglmROC <- roc(predictor = predictionsGLM$POS,
+response = test$LABEL_STR,
+levels = rev(levels(test$LABEL_STR)))
+
+glmModel
+modelglmROC# 
