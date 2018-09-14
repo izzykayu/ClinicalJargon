@@ -1,0 +1,52 @@
+These following features were performed using the TextBlob package in the python script:
+`feature_extraction_POS.py`
+[1] "noun_count"
+[2] "verb_count"           
+[3] "adj_count"
+[4] "adv_count"            
+[5] "pron_count"            
+
+The following features were created in R: `FE_withTokenizersLibrary.R`
+[1] "Nwords"
+[2] "Nunique"              
+[3] "Nrepeated"
+[4] "UniquenessRatio"      
+[5] "Wmean"
+[6] "Wmedian"              
+[7] "Wsd"
+
+Sentiment Analysis Feature Engineering in R with script `SentimentFE.R`:
+[1] "N_Negative"
+[2] "N_Positive"
+[3] "N_Anticipation"       
+[4] "N_Trust"
+[5] "N_Fear"               
+[6] "N_Sadness"
+[7] "N_Joy"                
+[8] "N_Disgust"
+[9] "N_Anger"
+[10] "SentimentScore"
+
+Other text-based Feature Engineering in R with script `OtherFE.R`:
+[1] "Ncharacters"                  
+[2] "Nqmark"
+[3] "Ncommas"
+[4] "Nsemicolumns"         
+[5] "Ncolons"
+[6] "Nblank"               
+[7] "Nother"
+[8] "Ncapitalfirst"        
+[9] "Ncapital"
+[10] "Nnumber"
+[11] "punctuation_count"
+
+
+Other feature engineering and normalization of text in python `Python_FE.py`:
+[1] "word_density"
+[2] "title_word_count"     
+[3] "upper_case_word_count"
+[4] "stopword_count"       
+[5] "lexical_diversity"
+[6] "raw_char_count"
+[7] "char_count"
+[8] "word_count"
